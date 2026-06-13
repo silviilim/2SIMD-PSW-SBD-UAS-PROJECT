@@ -1,14 +1,11 @@
 <?php
-// 1. Jalankan session di baris paling pertama untuk membaca status login & logout
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 include 'connection.php';
 
-// =========================================================================
-// LOGIKA LOGOUT
-// =========================================================================
+
 if (isset($_GET['logout']) && $_GET['logout'] === 'true') {
     $_SESSION = array();
 
@@ -25,9 +22,7 @@ if (isset($_GET['logout']) && $_GET['logout'] === 'true') {
     exit();
 }
 
-// =========================================================================
-// LOGIKA INSERT KATEGORI BARU
-// =========================================================================
+
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['aksi']) && $_POST['aksi'] == 'insert_category') {
     $category_id = $_POST['category_id'];
     $category_name = $_POST['category_name'];
@@ -58,9 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['aksi']) && $_POST['aks
     exit();
 }
 
-// =========================================================================
-// LOGIKA INSERT PRODUK BARU + UPLOAD GAMBAR
-// =========================================================================
+
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['aksi']) && $_POST['aksi'] == 'insert') {
     $product_id = $_POST['product_id'];
     $product_name = $_POST['product_name'];
@@ -68,9 +61,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['aksi']) && $_POST['aks
     $description = $_POST['description'];
     $price = $_POST['price'];
     
-    $nama_gambar_baru = null; // default value jika gambar kosong
+    $nama_gambar_baru = null; 
 
-    // Manajemen Upload File Gambar
+
     if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
         $file_name = $_FILES['image']['name'];
         $file_size = $_FILES['image']['size'];
@@ -81,10 +74,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['aksi']) && $_POST['aks
         $ekstensi = strtolower(end($x));
 
         if (in_array($ekstensi, $ekstensi_boleh) === true) {
-            if ($file_size < 2097152) { // Batas 2 Megabyte
+            if ($file_size < 2097152) { 
                 $nama_gambar_baru = time() . '_' . uniqid() . '.' . $ekstensi;
                 
-                // Pastikan folder img ada sebelum memindahkan file
+
                 if (!file_exists('img')) {
                     mkdir('img', 0777, true);
                 }
@@ -100,7 +93,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['aksi']) && $_POST['aks
         }
     }
 
-    // Cek duplikasi ID Produk
+
     $sql_cek = "SELECT product_id FROM maru_bake_house.dbo.product WHERE product_id = ?";
     $query_cek = sqlsrv_query($conn, $sql_cek, array($product_id));
 
@@ -128,9 +121,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['aksi']) && $_POST['aks
     exit();
 }
 
-// =========================================================================
-// LOGIKA UPDATE DATA PRODUK + PERBARUI GAMBAR
-// =========================================================================
+
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['aksi']) && $_POST['aksi'] == 'update') {
     $product_id = $_POST['product_id'];
     $product_name = $_POST['product_name'];
@@ -146,7 +137,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['aksi']) && $_POST['aks
         exit();
     }
 
-    // Cek jika user mengunggah berkas gambar baru
+
     if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
         $file_name = $_FILES['image']['name'];
         $file_size = $_FILES['image']['size'];
@@ -166,7 +157,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['aksi']) && $_POST['aks
                 
                 move_uploaded_file($file_tmp, 'img/' . $nama_gambar_baru);
 
-                // Hapus file gambar lama agar media penyimpanan tidak penuh
+
                 $sql_lama = "SELECT image_url FROM maru_bake_house.dbo.product WHERE product_id = ?";
                 $query_lama = sqlsrv_query($conn, $sql_lama, array($product_id));
                 if ($row_lama = sqlsrv_fetch_array($query_lama, SQLSRV_FETCH_ASSOC)) {
@@ -175,7 +166,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['aksi']) && $_POST['aks
                     }
                 }
 
-                // Jalankan kueri update yang menyertakan data gambar baru
+
                 $sql_update = "UPDATE maru_bake_house.dbo.product 
                                SET category_id = ?, product_name = ?, description = ?, price = ?, image_url = ? 
                                WHERE product_id = ?";
@@ -189,7 +180,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['aksi']) && $_POST['aks
             exit();
         }
     } else {
-        // Jalankan kueri update biasa tanpa merubah kolom gambar bawaan
+
         $sql_update = "UPDATE maru_bake_house.dbo.product 
                        SET category_id = ?, product_name = ?, description = ?, price = ? 
                        WHERE product_id = ?";
@@ -206,13 +197,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['aksi']) && $_POST['aks
     exit();
 }
 
-// =========================================================================
-// LOGIKA HAPUS PRODUK
-// =========================================================================
+
 if (isset($_GET['hapus'])) {
     $product_id = $_GET['hapus'];
 
-    // Hapus berkas fisik gambar di folder img sebelum record database dihapus
+
     $sql_img = "SELECT image_url FROM maru_bake_house.dbo.product WHERE product_id = ?";
     $query_img = sqlsrv_query($conn, $sql_img, array($product_id));
     
@@ -233,9 +222,8 @@ if (isset($_GET['hapus'])) {
     exit();
 }
 
-// =========================================================================
-// LOGIKA HAPUS REVIEW PELANGGAN
-// =========================================================================
+
+
 if (isset($_GET['hapus_review'])) {
     $review_id = $_GET['hapus_review'];
 

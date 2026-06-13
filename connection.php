@@ -1,14 +1,8 @@
 <?php
-$serverName = "localhost\SQLEXPRESS";
-$database = "maru_bake_house";
-$uid = "";
-$password = "";
-
+$serverName = "LAPTOP-H61L0EMI\\SQLEXPRESS";
 $connection = [
-    "Database" => $database,
-    "UID" => $uid,
-    "PWD" => $password,
-    "CharacterSet" => "UTF-8" 
+    "Database"     => "maru_bake_house",
+    "CharacterSet" => "UTF-8"
 ];
 
 $conn = sqlsrv_connect($serverName, $connection);
@@ -16,4 +10,6 @@ $conn = sqlsrv_connect($serverName, $connection);
 if ($conn === false) {
     die("<pre>" . print_r(sqlsrv_errors(), true) . "</pre>");
 }
+
+echo "";
 ?>

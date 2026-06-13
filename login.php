@@ -1,5 +1,4 @@
 <?php
-// 1. Memulai session dengan konfigurasi keamanan tambahan
 if (session_status() === PHP_SESSION_NONE) {
     session_start([
         'cookie_lifetime' => 86400,
@@ -11,23 +10,21 @@ if (session_status() === PHP_SESSION_NONE) {
 
 include 'connection.php';
 
-// 2. Jika admin sudah login, langsung dialihkan ke dashboard
 if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
     header("Location: admin.php");
     exit();
 }
 
-// 3. Membuat CSRF Token untuk keamanan form jika belum ada
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
 $error_message = "";
 
-// 4. Proses Validasi Form Login
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
-    // Cek Validitas CSRF Token
+
     if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
         die("Akses ilegal terdeteksi (CSRF Token Invalid).");
     }
@@ -36,9 +33,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = trim($_POST['password']);
 
     if (empty($username) || empty($password)) {
-        $error_message = "Username dan Password wajib diisi!";
+        $error_message = "Username and Password Must Be Filled!";
     } else {
-        // Menggunakan Prepared Statement untuk mencegah SQL Injection
+
         $sql_admin = "SELECT admin_id, username, password FROM maru_bake_house.dbo.admin WHERE username = ?";
         $stmt = sqlsrv_query($conn, $sql_admin, array($username));
 
@@ -48,10 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if ($row_admin = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
             
-            /* Mendukung dua metode verifikasi:
-               1. password_verify() -> Jika password di database sudah di-hash (Sangat Disarankan).
-               2. Perbandingan langsung (==) -> Sebagai cadangan jika password lama masih teks biasa.
-            */
+
             $is_password_correct = false;
             if (password_verify($password, $row_admin['password'])) {
                 $is_password_correct = true;
@@ -60,14 +54,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
 
             if ($is_password_correct) {
-                // Regenerasi ID session untuk mencegah Session Fixation
+
                 session_regenerate_id(true);
 
                 $_SESSION['admin_logged_in'] = true;
                 $_SESSION['admin_id'] = $row_admin['admin_id'];
                 $_SESSION['admin_username'] = $row_admin['username'];
 
-                // Hapus token lama setelah berhasil digunakan
+
                 unset($_SESSION['csrf_token']);
 
                 header("Location: admin.php");
@@ -81,6 +75,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
+
+<?php
+$show_error = false;
+
+if (isset($_POST['login'])) {
+
+    
+    if ($login_gagal) {
+        $show_error = true;
+    } else {
+
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -101,7 +110,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         body {
-            background-color: #7A1E13; /* Merah Maroon sesuai gambar */
+            background-color: #7A1E13; 
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -111,7 +120,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             position: relative;
         }
 
-        /* Ikon user dipojok kanan atas */
+
         .top-admin-icon {
             position: absolute;
             top: 30px;
@@ -127,7 +136,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             text-align: center;
         }
 
-        /* Desain Logo MARU */
+
         .brand-logo-container {
             margin-bottom: 25px;
         }
@@ -147,18 +156,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             margin-top: 5px;
         }
 
-        /* Kotak Card Cream Utama */
+
         .login-card-custom {
-            background-color: #F2EAD3; /* Warna krem sesuai gambar */
+            background-color: #F2EAD3;
             padding: 50px 55px;
-            border-radius: 40px; /* Lengkungan besar di sudut kotak */
+            border-radius: 40px; 
             box-shadow: 0 15px 35px rgba(0,0,0,0.3);
             text-align: left;
             position: relative;
             overflow: hidden;
         }
 
-        /* Efek setengah lingkaran cekung di bagian atas tengah kartu krem */
+
         .login-card-custom::before {
             content: '';
             position: absolute;
@@ -167,15 +176,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             transform: translateX(-50%);
             width: 140px;
             height: 70px;
-            background-color: #7A1E13; /* Menyamai background merah */
+            background-color: #7A1E13; 
             border-bottom-left-radius: 70px;
             border-bottom-right-radius: 70px;
             z-index: 1;
         }
 
-        /* Pengaturan Form */
         .login-card-custom form {
-            margin-top: 25px; /* Memberi ruang agar tidak tertutup setengah lingkaran */
+            margin-top: 25px; 
         }
 
         .form-group-custom {
@@ -186,7 +194,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             display: block;
             font-weight: 700;
             font-size: 14px;
-            color: #581C14; /* Cokelat tua kemerahan */
+            color: #581C14;
             margin-bottom: 10px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -195,13 +203,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .form-group-custom input {
             width: 100%;
             padding: 14px 25px;
-            border: 1px solid #7A1E13; /* Border tipis maroon */
-            border-radius: 30px; /* Bentuk lonjong kapsul pil */
+            border: 1px solid #7A1E13;
+            border-radius: 30px;
             font-size: 14px;
             color: #581C14;
             background-color: transparent;
             outline: none;
-            font-style: italic; /* Text placeholder miring sesuai desain */
+            font-style: italic;
         }
 
         .form-group-custom input::placeholder {
@@ -209,19 +217,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             opacity: 0.7;
         }
 
-        /* Notifikasi Error */
+
         .alert-custom {
             background-color: #7A1E13;
             color: #FFFFFF;
-            padding: 12px 20px;
-            border-radius: 10px;
+            padding: 10px;
+            border-radius: 8px;
             margin-bottom: 20px;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 500;
             text-align: center;
         }
 
-        /* Teks informasi instruksi di atas tombol */
+
         .instruction-text {
             text-align: center;
             font-size: 14px;
@@ -232,9 +240,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             margin-top: 10px;
         }
 
-        /* Desain Tombol Login */
+
         .btn-login-custom {
-            background-color: #581C14; /* Cokelat gelap maroon */
+            background-color: #581C14; 
             color: #FFFFFF;
             border: none;
             padding: 14px;
@@ -242,7 +250,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             font-weight: 700;
             font-size: 16px;
             text-transform: uppercase;
-            border-radius: 30px; /* Lonjong kapsul */
+            border-radius: 30px; 
             cursor: pointer;
             transition: 0.3s;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
@@ -253,7 +261,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             transform: translateY(-2px);
         }
 
-        /* Teks Hak Cipta Bawah */
+
         .copyright-text {
             text-align: center;
             margin-top: 40px;
@@ -295,7 +303,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <input type="password" name="password" id="password" placeholder="Input your password" required>
             </div>
             
-            <div class="instruction-text">Enter your username and password !</div>
             
             <button type="submit" class="btn-login-custom">Login</button>
         </form>
